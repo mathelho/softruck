@@ -1,45 +1,47 @@
-import { useState } from 'react'
-import logo from './logo.svg'
-import './App.css'
+import mapboxgl from 'mapbox-gl'
+import { useEffect, useRef, useState } from 'react';
+import './styles/index.scss';
 
-function App() {
-  const [count, setCount] = useState(0)
+export function App() {
+  mapboxgl.accessToken = 'pk.eyJ1IjoibWF0aGVsaG8iLCJhIjoiY2wzNXY5eDBrMDlmbDNpcGxnZ3A5NWF1ZyJ9._2VpiZBKbWt9yUL_tKW9zA';
+
+  const mapContainer = useRef<any>(null);
+  const map = useRef<any>(null);
+  const [lng, setLng] = useState(-46.3);
+  const [lat, setLat] = useState(-23.95);
+  const [zoom, setZoom] = useState(13);
+
+  // inicializa o mapa
+  useEffect(() => {
+    if (map.current) return; // inicializa o mapa apenas uma vez
+
+    map.current = new mapboxgl.Map({
+      container: mapContainer.current,
+      style: 'mapbox://styles/mapbox/streets-v11',
+      center: [lng, lat],
+      zoom: zoom
+    });
+  })
+
+  // mais um useEffect para atualizar os estados declarados anteriormente.
+  // são atualizados quando o usuário interage com o mapa
+  useEffect(() => {
+    if (!map.current) return; // só é possível mover o mapa se ele já estiver inicializado
+
+    map.current.on('move', () => {
+      setLng(map.current.getCenter().lng.toFixed(4));
+      setLat(map.current.getCenter().lat.toFixed(4));
+      setZoom(map.current.getZoom().toFixed(2));
+    });
+  })
 
   return (
-    <div className="App">
-      <header className="App-header">
-        <img src={logo} className="App-logo" alt="logo" />
-        <p>Hello Vite + React!</p>
-        <p>
-          <button type="button" onClick={() => setCount((count) => count + 1)}>
-            count is: {count}
-          </button>
-        </p>
-        <p>
-          Edit <code>App.tsx</code> and save to test HMR updates.
-        </p>
-        <p>
-          <a
-            className="App-link"
-            href="https://reactjs.org"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Learn React
-          </a>
-          {' | '}
-          <a
-            className="App-link"
-            href="https://vitejs.dev/guide/features.html"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Vite Docs
-          </a>
-        </p>
-      </header>
-    </div>
-  )
-}
+    <div>
+      <div className='sidebar'>
+        Longitude: {lng} | Latitude: {lat} | Zoom: {zoom}
+      </div>
 
-export default App
+      <div ref={mapContainer} className='map-container' />
+    </div>
+  );
+}
