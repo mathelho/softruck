@@ -1,5 +1,8 @@
 import mapboxgl, { LngLatLike } from 'mapbox-gl'
 import { useEffect, useRef, useState } from 'react';
+import { Sidebar } from './components/Sidebar';
+import * as turf from '@turf/turf'
+
 import './styles/index.scss';
 
 export function App() {
@@ -94,24 +97,151 @@ export function App() {
       [-46.278711, -23.913525],
       [-46.278736, -23.913536]
     ]
-    
-    function animateMarker(timestamp: number) {
-      let position = Math.floor(timestamp / 1000) % pontos.length;
-      marker.setLngLat(pontos[position]);
-      marker.addTo(map.current);
-      requestAnimationFrame(animateMarker);
+
+    // uma linha pelas coordenadas
+    const route = {
+      'type': 'FeatureCollection',
+      'features': [
+        {
+          'type': 'Feature',
+          'geometry': {
+            'type': 'LineString',
+            'coordinates': pontos
+          }
+        }
+      ]
+    };
+
+    // um único ponto que será animado pela rota. coordenadas começam na origem
+    const point = {
+      'type': 'FeatureCollection',
+      'features': [
+        {
+          'type': 'Feature',
+          'properties': {},
+          'geometry': {
+            'type': 'Point',
+            'coordinates': [-46.28054, -23.963214]
+          }
+        }
+      ]
+    };
+
+    // distância entre o começo e o fim da rota
+    const lineDistance = turf.length(route.features[0]);
+
+    const arc = [];
+
+    // steps determinam a velocidade da animação. mais steps = mais lenta
+    const steps = 500;
+
+    // desenha um arco entre a origem e o destino
+    for (let i = 0; i < lineDistance; i += lineDistance / steps) {
+      const segment = turf.along(route.features[0], i);
+      arc.push(segment.geometry.coordinates);
     }
 
-    requestAnimationFrame(animateMarker);
-  })
+    // atualiza a rota com as coordenadas calculadas do arco
+    route.features[0].geometry.coordinates = arc;
+
+    // incrementa o valor da medida do ponto
+    let counter = 0;
+
+    map.current.on('load', () => {
+      // adiciona uma source e layer com o point que vai ser animado
+      map.current.addSource('route', {
+        'type': 'geojson',
+        'data': route
+      });
+
+      map.current.addSource('point', {
+        'type': 'geojson',
+        'data': point
+      })
+
+      map.current.addLayer({
+        'id': 'route',
+        'source': 'route',
+        'type': 'line',
+        'paint': {
+          'line-width': 2,
+          'line-color': '#007cbf'
+        }
+      });
+
+      map.current.addLayer({
+        'id': 'point',
+        'source': 'point',
+        'type': 'symbol',
+        'layout': {
+          'icon-image': 'airport-15',
+          'icon-rotate': ['get', 'bearing'],
+          'icon-rotation-alignment': 'map',
+          'icon-allow-overlap': true,
+          'icon-ignore-placement': true
+        }
+      });
+
+      function animate() {
+        const start = route.features[0].geometry.coordinates[counter >= steps ? counter - 1 : counter];
+        const end = route.features[0].geometry.coordinates[counter >= steps ? counter : counter + 1];
+
+        if (!start || !end) return;
+
+        point.features[0].geometry.coordinates = route.features[0].geometry.coordinates[counter];
+
+        point.features[0].properties.bearing = turf.bearing(
+          turf.point(start),
+          turf.point(end)
+        );
+
+        map.current.getSource('point').setData(point);
+
+        if (counter < steps) {
+          requestAnimationFrame(animate);
+        }
+
+        counter = counter + 1;
+      }
+
+      document.getElementById('replay').addEventListener('click', () => {
+        // Set the coordinates of the original point back to origin
+        point.features[0].geometry.coordinates = [-46.28054, -23.963214];
+         
+        // Update the source layer
+        map.current.getSource('point').setData(point);
+         
+        // Reset the counter
+        counter = 0;
+         
+        // Restart the animation
+        animate(counter);
+        });
+         
+        // Start the animation
+        animate(counter);
+    })
+
+    function animateMarker(timestamp: number) {
+      /*let position = Math.floor(timestamp / 1000) % pontos.length;
+      marker.setLngLat(pontos[position]);
+      marker.addTo(map.current);
+      requestAnimationFrame(animateMarker);*/
+    }
+
+    
+  });
+    
 
   return (
     <div>
-      <div className='sidebar'>
-        Longitude: {lng} | Latitude: {lat} | Zoom: {zoom}
-      </div>
+      <Sidebar longitude={lng} latitude={lat} zoom={zoom} />
 
       <div ref={mapContainer} className='map-container' />
+
+      <div className="overlay">
+        <button id="replay">Replay</button>
+      </div>
     </div>
   );
 }
