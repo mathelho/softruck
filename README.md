@@ -2,6 +2,16 @@
 
 Neste desafio, a tarefa era criar uma tela com um mapa mostrando a animação do sprite de um carro percorrendo trajetos fornecidos por dados geográficos.
 
+## Instruções de execução
+
+Para executar a aplicação, navegue até a pasta do projeto e execute o comando abaixo para instalar as dependências:
+
+`npm install`
+
+Após instalar as dependências, execute o comando abaixo para rodar a aplicação no localhost em ambiente de de desenvolvimento:
+
+`npm run dev`
+
 ## Tecnologias utilizadas
 
 Para a realização do desafio, optou-se por utilizar o ReactJS, um framework de JavaScript/TypeScript para interfaces de usuário, pois ele auxilia a construirmos aplicações de página única de forma eficiente. O TypeScript foi escolhido para ser usado nessa aplicação, pois dá um melhor controle sobre os que as variáveis estão recebendo.
@@ -18,7 +28,7 @@ Além disso, o Turf já usa dentro de suas dependências um formato de armazenam
 
 ## Código
 
-O maioria do código relacionado ao mapa está dentro do App.tsx na pasta src, enquanto a sidebar mostrando longitude, latitude e zoom atuais foi colocada num componente separado na pasta src/components, o que também foi feito com o botão de replay da animação. No App.tsx, o mapa é declarado, os valores do estados são atualizados sempre que o mapa é movido pelo mouse, e é feita a lógica da animação do sprite.
+O maioria do código relacionado ao mapa está dentro do App.tsx na pasta src, enquanto a sidebar mostrando longitude, latitude e zoom atuais foi colocada num componente separado na pasta src/components, o que também foi feito com o botão de replay da animação. No App.tsx, o mapa é declarado, os valores do estados são atualizados sempre que o mapa é movido pelo mouse, e é feita a lógica da animação do sprite. As tarefas bônus não foram realizadas.
 
 Na pasta src/assets estão os arquivos PNG de sprite do carro. A forma que encontrei de realizar a animação não dependia de todas as rotações do carro num PNG só, então tomei a liberdade de fazer um PNG separado com uma posição fixa e utilizar este PNG.
 
