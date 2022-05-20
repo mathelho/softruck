@@ -4,7 +4,7 @@ Neste desafio, a tarefa era criar uma tela com um mapa mostrando a animação do
 
 ## Instruções de execução
 
-Para executar a aplicação, navegue até a pasta do projeto e execute o comando abaixo para instalar as dependências:
+Com o Node.JS instalado, para executar a aplicação, navegue até a pasta do projeto e execute no terminal o comando abaixo para instalar as dependências:
 
 `npm install`
 
