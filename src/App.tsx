@@ -12,8 +12,8 @@ export function App() {
 
   const mapContainer = useRef<any>(null);
   const map = useRef<any>(null);
-  const [lng, setLng] = useState(-46.3);
-  const [lat, setLat] = useState(-23.95);
+  const [lng, setLng] = useState(-46.3); // inicializa na longitude perto do trajeto
+  const [lat, setLat] = useState(-23.95); // inicializa na latitude perto do trajeto
   const [zoom, setZoom] = useState(13);
   const [rotas, setRotas] = useState<any>([]);
 
@@ -154,7 +154,7 @@ export function App() {
       // está sendo usado apenas uma posição do sprite fornecido
       map.current.loadImage(carImg, 
         (error: any, image: any) => {
-          if (error) throw error;
+          if (error) throw error; // poderia levantar um erro, principalmente se fosse uma URL
 
           // adiciona a imagem no style do mapa
           map.current.addImage('car', image);
@@ -242,13 +242,6 @@ export function App() {
       // inicia a animação
       animate(counter);
     })
-
-    function animateMarker(timestamp: number) {
-      /*let position = Math.floor(timestamp / 1000) % pontos.length;
-      marker.setLngLat(pontos[position]);
-      marker.addTo(map.current);
-      requestAnimationFrame(animateMarker);*/
-    }
     
   });
 
