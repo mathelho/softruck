@@ -2,8 +2,10 @@ import mapboxgl, { LngLatLike } from 'mapbox-gl'
 import { useEffect, useRef, useState } from 'react';
 import { Sidebar } from './components/Sidebar';
 import * as turf from '@turf/turf'
+import carImg from './assets/cars_1.png'
 
 import './styles/index.scss';
+import { ReplayButton } from './components/ReplayButton';
 
 export function App() {
   mapboxgl.accessToken = 'pk.eyJ1IjoibWF0aGVsaG8iLCJhIjoiY2wzNXY5eDBrMDlmbDNpcGxnZ3A5NWF1ZyJ9._2VpiZBKbWt9yUL_tKW9zA';
@@ -49,9 +51,6 @@ export function App() {
 
   useEffect(() => {
     if (!map.current) return;
-
-    const marker = new mapboxgl.Marker()
-    .setLngLat([-46.28054, -23.963214])
     
     const pontos: LngLatLike[] = [
       [-46.280544, -23.96325],
@@ -118,7 +117,9 @@ export function App() {
       'features': [
         {
           'type': 'Feature',
-          'properties': {},
+          'properties': {
+            'bearing': 0
+          },
           'geometry': {
             'type': 'Point',
             'coordinates': [-46.28054, -23.963214]
@@ -130,6 +131,7 @@ export function App() {
     // distância entre o começo e o fim da rota
     const lineDistance = turf.length(route.features[0]);
 
+    // declaração do arco que será desenhado
     const arc = [];
 
     // steps determinam a velocidade da animação. mais steps = mais lenta
@@ -148,6 +150,18 @@ export function App() {
     let counter = 0;
 
     map.current.on('load', () => {
+      // carrega uma imagem de um arquivo ou uma URL.
+      // está sendo usado apenas uma posição do sprite fornecido
+      map.current.loadImage(carImg, 
+        (error: any, image: any) => {
+          if (error) throw error;
+
+          // adiciona a imagem no style do mapa
+          map.current.addImage('car', image);
+
+        }
+      )
+
       // adiciona uma source e layer com o point que vai ser animado
       map.current.addSource('route', {
         'type': 'geojson',
@@ -174,29 +188,36 @@ export function App() {
         'source': 'point',
         'type': 'symbol',
         'layout': {
-          'icon-image': 'airport-15',
+          'icon-image': 'car', // carImg adicionado aqui
           'icon-rotate': ['get', 'bearing'],
           'icon-rotation-alignment': 'map',
           'icon-allow-overlap': true,
-          'icon-ignore-placement': true
+          'icon-ignore-placement': true,
+          'icon-size': 0.25
         }
       });
 
-      function animate() {
+      function animate(timestamp: number) {
         const start = route.features[0].geometry.coordinates[counter >= steps ? counter - 1 : counter];
         const end = route.features[0].geometry.coordinates[counter >= steps ? counter : counter + 1];
 
         if (!start || !end) return;
 
+        // atualiza o point baseado no contador
         point.features[0].geometry.coordinates = route.features[0].geometry.coordinates[counter];
 
+        // a função bearing do turf pega dois pontos e encontra o ângulo entre eles, em graus,
+        // medido do norte no sentido horário. em português seria algo como o "azimute".
+        // usando essa função, o ícone do carro irá rotacionar de acordo com o arco da rota
         point.features[0].properties.bearing = turf.bearing(
           turf.point(start),
           turf.point(end)
         );
 
+        // atualizada a camada do point com as novas atribuições ao point
         map.current.getSource('point').setData(point);
 
+        // enquanto o número de passos não ser atingido pelo contador, a animação continua
         if (counter < steps) {
           requestAnimationFrame(animate);
         }
@@ -204,22 +225,22 @@ export function App() {
         counter = counter + 1;
       }
 
-      document.getElementById('replay').addEventListener('click', () => {
-        // Set the coordinates of the original point back to origin
+      document.getElementById('replay')!.addEventListener('click', () => {
+        // coloca as coordenadas do point animado de volta para a origem novamente
         point.features[0].geometry.coordinates = [-46.28054, -23.963214];
          
-        // Update the source layer
+        // atualiza a camada onde está o point
         map.current.getSource('point').setData(point);
          
-        // Reset the counter
+        // reinicia o contador
         counter = 0;
          
-        // Restart the animation
+        // reinicia a animação
         animate(counter);
-        });
+      });
          
-        // Start the animation
-        animate(counter);
+      // inicia a animação
+      animate(counter);
     })
 
     function animateMarker(timestamp: number) {
@@ -228,10 +249,8 @@ export function App() {
       marker.addTo(map.current);
       requestAnimationFrame(animateMarker);*/
     }
-
     
   });
-    
 
   return (
     <div>
@@ -239,9 +258,7 @@ export function App() {
 
       <div ref={mapContainer} className='map-container' />
 
-      <div className="overlay">
-        <button id="replay">Replay</button>
-      </div>
+      <ReplayButton />
     </div>
   );
 }

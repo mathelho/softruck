@@ -14,3 +14,23 @@
     margin: 12px;
     border-radius: 4px;
 }
+
+.overlay {
+    position: absolute;
+    top: 40px;
+    left: 12px;
+}
+
+#replay {
+    padding: 5px 10px;
+    background-color: rgb(57, 165, 14);
+    font-family: monospace;
+    color: white;
+    border: 0px;
+    margin-top: 5px;
+    border-radius: 2px;
+
+    &:hover {
+        cursor: pointer;
+    }
+}
